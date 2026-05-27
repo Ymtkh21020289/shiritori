@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>進化版しりとり</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="app">
+        <div id="login-screen">
+            <h1>進化版しりとり</h1>
+            <p>重ねた文字数だけポイントが入る戦略的しりとり！</p>
+            <input type="text" id="player-name" placeholder="名前を入力">
+            <button onclick="joinGame()">参加する</button>
+        </div>
+
+        <div id="lobby-screen" style="display: none;">
+            <h2>参加者待機室</h2>
+            <ul id="player-list-lobby"></ul>
+            <div class="settings">
+                <label><input type="radio" name="mode" value="10turns" checked> 10ターンマッチ</label>
+                <label><input type="radio" name="mode" value="15points"> 15点先取マッチ (ラストターンあり)</label>
+            </div>
+            <button onclick="startGame()" id="start-btn" disabled>ゲーム開始 (2人以上必要)</button>
+        </div>
+
+        <div id="game-screen" style="display: none;">
+            <div class="header">
+                <div>ラウンド: <span id="round-display">1</span></div>
+                <div class="timer">残り時間: <span id="time-display">30</span>秒</div>
+            </div>
+            
+            <div class="main-area">
+                <div class="word-display">
+                    <p>現在の単語</p>
+                    <h2 id="current-word">しりとり</h2>
+                </div>
+
+                <div id="turn-indicator"></div>
+
+                <div class="input-area">
+                    <input type="text" id="word-input" placeholder="ひらがなで入力">
+                    <button onclick="submitWord()" id="submit-btn">送信</button>
+                </div>
+                <p id="error-msg"></p>
+            </div>
+
+            <div class="players-area">
+                <h3>スコアボード</h3>
+                <ul id="player-scores"></ul>
+            </div>
+
+            <div class="log-area">
+                <h3>ゲームログ</h3>
+                <ul id="game-log"></ul>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="client.js"></script>
+</body>
+</html>
