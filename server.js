@@ -41,7 +41,8 @@ function calculateOverlap(prevWord, newWord) {
 async function isValidWord(word) {
     try {
         const response = await axios.get(`https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(word)}`);
-        return response.data.data.length > 0;
+        const readings = response.data.japanese
+        return readings[0].reading == word;
     } catch (error) {
         console.error("API Error:", error);
         return false;
