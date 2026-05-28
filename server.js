@@ -37,10 +37,15 @@ function calculateOverlap(prevWord, newWord) {
     return maxOverlap;
 }
 
-// 辞書APIで単語の存在確認 (読みが完全一致するかチェック)
+// 辞書APIで単語の存在確認 (User-Agentを追加して403エラーを対策)
 async function isValidWord(word) {
     try {
-        const response = await axios.get(`https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(word)}`);
+        const response = await axios.get(`https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(word)}`, {
+            headers: {
+                // 通常のブラウザからのアクセスであると偽装するヘッダー
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+        });
         const items = response.data.data;
 
         if (!items || items.length === 0) return false;
