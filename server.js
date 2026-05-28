@@ -37,37 +37,21 @@ function calculateOverlap(prevWord, newWord) {
     return maxOverlap;
 }
 
-// 辞書APIで単語の存在確認 (キー不要のjisho.org APIを使用)
+// 辞書APIで単語の存在確認 (読みが完全一致するかチェック)
 async function isValidWord(word) {
     try {
-        // 1. 前後の余計な空白を削除
-        const cleanWord = word.trim();
+        const response = await axios.get(`https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(word)}`);
+        const items = response.data.data;
 
-        // 2. ボット弾きを回避するため、一般的なブラウザのUser-Agentを偽装
-        const config = {
-            headers: { 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)' }
-        };
+        if (!items || items.length === 0) return false;
 
-        const response = await axios.get(`https://jisho.org/api/v1/search/words?keyword=${encodeURIComponent(cleanWord)}`, config);
-        
-        // 3. Jisho APIで1件でもヒットすれば有効とする
-        if (response.data && response.data.data && response.data.data.length > 0) {
-            return true;
-        }
-
-        // 4. Jisho APIで弾かれた場合の救済措置としてWikipediaの検索ヒット数を確認する
-        // （「りんご」など、ひらがな単語の取りこぼしを防ぐため）
-        const wikiRes = await axios.get(`https://ja.wikipedia.org/w/api.php?format=json&action=query&list=search&srsearch=${encodeURIComponent(cleanWord)}`, config);
-        if (wikiRes.data && wikiRes.data.query && wikiRes.data.query.search.length > 0) {
-            return true; 
-        }
-
-        return false;
-
+        // 返ってきたデータの「japanese」配列の中に、読み(reading)が入力単語と完全一致するものがあるか判定
+        return items.some(item => {
+            return item.japanese && item.japanese.some(ja => ja.reading === word);
+        });
     } catch (error) {
-        console.error("API Error:", error.message);
-        // APIが落ちている・制限に引っかかった場合は、ゲームを進行させるために強制的にtrueを返す
-        return true; 
+        console.error("API Error:", error);
+        return false;
     }
 }
 
@@ -165,7 +149,7 @@ io.on('connection', (socket) => {
         // ひらがなチェック
         if (!/^[ぁ-んー]+$/.test(word)) {
             socket.emit('error_message', 'ひらがなのみで入力してください。');
-            return; // お手付きは無制限なのでターンは進めない
+            return;
         }
 
         // 使用済みチェック
